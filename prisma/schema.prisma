@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  name     String
+  password String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project_User[]
+}
+
+model Tramite {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  inCharge    String
+  startedAt   DateTime
+  endedAt     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  call   Call @relation(fields: [callId], references: [id])
+  callId Int
+}
+
+enum CallStatus {
+  OPEN
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Call {
+  id          Int        @id @default(autoincrement())
+  client      String
+  description String
+  started_at  DateTime
+  ended_at    DateTime
+  inCharge    String
+  status      CallStatus
+  priority    Priority
+  user_client String
+
+  tramites  Tramite[]
+  project   Project   @relation(fields: [projectId], references: [id])
+  projectId Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Project_User {
+  id      Int     @id @default(autoincrement())
+  manager Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId Int
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Project {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calls   Call[]
+  users   Project_User[]
+  invites Invite[]
+}
+
+model Invite {
+  id      Int      @id @default(autoincrement())
+  email   String
+  token   String
+  expires DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId Int
+}
